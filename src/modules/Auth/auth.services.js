@@ -9,7 +9,7 @@ import userModel from "../../DB/models/user.model.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
 import {GenerateToken} from "../../common/utils/jwt/token.service.js";
 import {randomUUID} from "crypto";
-import {LogOutEnum} from "./enum/auth.enum.js";
+import {LogOutEnum} from "../../common/utils/enum/auth.enum.js";
 
 export const signUp = async (req, res, next) => {
   const {firstName, lastName, bio, email, password} = req.body;

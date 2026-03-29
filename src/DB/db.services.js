@@ -94,3 +94,11 @@ export const deleteOne = async ({filter, model}) => {
 export const deleteMany = async ({filter, model}) => {
   return await model.deleteMany(filter || {});
 };
+
+export const findOneAndDelete = async ({
+  model,
+  filter = {},
+  options = {},
+} = {}) => {
+  return await model.findOneAndDelete(filter, options);
+};

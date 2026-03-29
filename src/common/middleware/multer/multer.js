@@ -2,26 +2,24 @@ import fs from "fs";
 import path from "path";
 import multer from "multer";
 
-export const multer_local = ({custom_types = []} = {}) => {
+export const multer_local = ({
+  custom_path = "General",
+  custom_types = [],
+} = {}) => {
+  const fullPath = `uploads/${custom_path}`;
   const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      let folderPath;
-
-      if (file.fieldname === "attachment") {
-        folderPath = path.join(process.cwd(), "uploads", "profilePics");
-      } else if (file.fieldname === "attachments") {
-        folderPath = path.join(process.cwd(), "uploads", "coverPics");
-      } else if (file.fieldname === "messagePhotos") {
-        folderPath = path.join(process.cwd(), "uploads", "messages");
-      } else {
-        folderPath = path.join(process.cwd(), "uploads", "gallery");
+      let folder = fullPath;
+      if (file.fieldname === "image") {
+        folder = `uploads/images`;
       }
-
-      if (!fs.existsSync(folderPath)) {
-        fs.mkdirSync(folderPath, {recursive: true});
+      if (file.fieldname === "pdf") {
+        folder = `uploads/pdfs`;
       }
-
-      cb(null, folderPath);
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, {recursive: true});
+      }
+      cb(null, folder);
     },
 
     filename: function (req, file, cb) {
@@ -40,20 +38,6 @@ export const multer_local = ({custom_types = []} = {}) => {
   return multer({storage, fileFilter});
 };
 
-export const multer_host = (custom_types = []) => {
-  const storage = multer.diskStorage({
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + "-" + file.originalname);
-    },
-  });
-  function fileFilter(req, file, cb) {
-    if (!custom_types.includes(file.mimetype)) {
-      return cb(new Error("inValid File Type", {cause: 400}));
-    }
-    return cb(null, true);
-  }
-
-  const upload = multer({storage, fileFilter});
-  return upload;
+export const normalizePath = (filePath) => {
+  return filePath.replace(/\\/g, "/");
 };

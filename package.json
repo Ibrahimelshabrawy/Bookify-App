@@ -24,6 +24,7 @@
     "mongoose": "^9.1.6",
     "multer": "^2.0.2",
     "nodemailer": "^8.0.2",
+    "pdf-parse": "^2.4.5",
     "redis": "^5.11.0",
     "uuid": "^13.0.0"
   },

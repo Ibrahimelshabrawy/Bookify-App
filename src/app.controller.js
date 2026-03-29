@@ -3,6 +3,8 @@ import checkConnection from "./DB/connectionDB.js";
 import cors from "cors";
 import {redisConnection} from "./DB/redis/redis.db.js";
 import authRouter from "./modules/Auth/auth.controller.js";
+import bookRouter from "./modules/books/book.controller.js";
+import favoriteRouter from "./modules/favorites/favorites.controller.js";
 const app = express();
 const port = process.env.PORT;
 
@@ -20,8 +22,10 @@ const bootstrap = async () => {
   // static files
   app.use("/uploads", express.static("uploads"));
 
-  // // Routers
+  // Routers
   app.use("/auth", authRouter);
+  app.use("/books", bookRouter);
+  app.use("/favorites", favoriteRouter);
 
   app.use("{/*demo}", (req, res, next) => {
     throw new Error("`The URL ${req.originalUrl} Is Not Found 😥`", {
@@ -34,6 +38,8 @@ const bootstrap = async () => {
     res.status(err.cause || 500).json({message: err.message, stack: err.stack});
   });
 
-  app.listen(port, () => console.log(`Saraha app listening on port ${port}!`));
+  app.listen(process.env.PORT, () =>
+    console.log(`Saraha app listening on port ${port}!`),
+  );
 };
 export default bootstrap;
