@@ -65,6 +65,7 @@ export const updateOne = async ({
 } = {}) => {
   let doc = model.updateOne(filter, update, {
     runValidators: true,
+    new: true,
     ...options,
   });
   return await doc.exec();

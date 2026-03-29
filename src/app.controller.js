@@ -37,9 +37,7 @@ const bootstrap = async () => {
     // console.error(err.stack);
     res.status(err.cause || 500).json({message: err.message, stack: err.stack});
   });
-
-  app.listen(process.env.PORT, () =>
-    console.log(`Saraha app listening on port ${port}!`),
-  );
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Bookify app listening on port ${PORT}!`));
 };
 export default bootstrap;

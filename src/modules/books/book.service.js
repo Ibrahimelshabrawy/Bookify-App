@@ -1,27 +1,44 @@
-import {PDFParse} from "pdf-parse";
+import fs from "fs";
+import {PDFDocument} from "pdf-lib";
 import * as db_service from "../../DB/db.services.js";
 import bookModel from "../../DB/models/book.model.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
 import {normalizePath} from "../../common/middleware/multer/multer.js";
 import favoriteModel from "../../DB/models/favorites.model.js";
+import cloudinary from "../../common/utils/cloudinary/cloudinary.js";
 
 export const addBook = async (req, res, next) => {
   const {title, description, totalPages, category} = req.body;
-  let imagePath = null;
-  let pdfPath = null;
+  let imageData = null;
+  let pdfData = null;
   let pagesCount = totalPages;
 
-  //   console.log(req.files.image);
-
   if (req.files?.image) {
-    imagePath = normalizePath(req.files.image[0].path);
+    const imageUpload = await cloudinary.uploader.upload(
+      req.files.image[0].path,
+      {
+        folder: "images",
+        resource_type: "image",
+      },
+    );
+    imageData = {
+      secure_url: imageUpload.secure_url,
+      public_id: imageUpload.public_id,
+    };
   }
   if (req.files?.pdf) {
-    pdfPath = normalizePath(req.files.pdf[0].path);
-    const parser = new PDFParse({url: pdfPath});
-    const result = await parser.getInfo({parsePageInfo: true});
-    await parser.destroy();
-    pagesCount = result.total;
+    const dataBuffer = fs.readFileSync(req.files.pdf[0].path);
+    const pdfDoc = await PDFDocument.load(dataBuffer);
+    pagesCount = pdfDoc.getPageCount();
+
+    const pdfUpload = await cloudinary.uploader.upload(req.files.pdf[0].path, {
+      folder: "Pdfs",
+      resource_type: "auto",
+    });
+    pdfData = {
+      secure_url: pdfUpload.secure_url,
+      public_id: pdfUpload.public_id,
+    };
   }
 
   if (!pagesCount) {
@@ -37,8 +54,8 @@ export const addBook = async (req, res, next) => {
       description,
       category,
       totalPages: pagesCount,
-      image: imagePath,
-      pdf: pdfPath,
+      image: imageData,
+      pdf: pdfData,
       createdBy: req.user._id,
     },
     options: {
@@ -58,21 +75,59 @@ export const editBook = async (req, res, next) => {
   const {title, category, description, totalPages} = req.body;
   const {id} = req.params;
 
+  const oldBook = await db_service.findById({
+    model: bookModel,
+    id,
+  });
+
+  if (!oldBook) {
+    throw new Error("Book Is Not Exist Or You Are Not Authorized ❗", {
+      cause: 404,
+    });
+  }
+
   const updatedData = {};
   let pagesCount = totalPages;
 
   if (req.files?.image) {
-    updatedData.image = normalizePath(req.files.image[0].path);
+    if (oldBook?.image?.public_id) {
+      await cloudinary.uploader.destroy(oldBook.image.public_id, {
+        resource_type: "image",
+      });
+    }
+    const imageUpload = await cloudinary.uploader.upload(
+      req.files.image[0].path,
+      {
+        folder: "images",
+        resource_type: "image",
+      },
+    );
+
+    updatedData.image = {
+      secure_url: imageUpload.secure_url,
+      public_id: imageUpload.public_id,
+    };
   }
 
   if (req.files?.pdf) {
-    const pdfPath = normalizePath(req.files.pdf[0].path);
-    const parser = new PDFParse({url: pdfPath});
-    const result = await parser.getInfo({parsePageInfo: true});
-    await parser.destroy();
-    pagesCount = result.total;
+    if (oldBook?.pdf?.public_id) {
+      await cloudinary.uploader.destroy(oldBook.pdf.public_id, {
+        resource_type: "image",
+      });
+    }
+    const dataBuffer = fs.readFileSync(req.files.pdf[0].path);
+    const pdfDoc = await PDFDocument.load(dataBuffer);
+    pagesCount = pdfDoc.getPageCount();
 
-    updatedData.pdf = pdfPath;
+    const pdfUpload = await cloudinary.uploader.upload(req.files.pdf[0].path, {
+      folder: "Pdfs",
+      resource_type: "auto",
+    });
+
+    updatedData.pdf = {
+      secure_url: pdfUpload.secure_url,
+      public_id: pdfUpload.public_id,
+    };
     updatedData.totalPages = pagesCount;
   } else if (totalPages) {
     updatedData.totalPages = pagesCount;
@@ -91,11 +146,6 @@ export const editBook = async (req, res, next) => {
     },
   });
 
-  if (!book) {
-    throw new Error("Book Is Not Exist Or You Are Not Authorized ❗", {
-      cause: 404,
-    });
-  }
   successResponse({
     res,
     status: 200,

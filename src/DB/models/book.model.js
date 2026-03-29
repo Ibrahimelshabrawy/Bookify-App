@@ -26,8 +26,14 @@ const bookSchema = new mongoose.Schema(
       enum: Object.values(BookEnum),
       default: BookEnum.other,
     },
-    image: String,
-    pdf: String,
+    image: {
+      secure_url: String,
+      public_id: String,
+    },
+    pdf: {
+      secure_url: String,
+      public_id: String,
+    },
     createdBy: {
       type: mongoose.Types.ObjectId,
       ref: "user",
