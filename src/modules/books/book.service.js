@@ -3,9 +3,9 @@ import {PDFDocument} from "pdf-lib";
 import * as db_service from "../../DB/db.services.js";
 import bookModel from "../../DB/models/book.model.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
-import {normalizePath} from "../../common/middleware/multer/multer.js";
 import favoriteModel from "../../DB/models/favorites.model.js";
 import cloudinary from "../../common/utils/cloudinary/cloudinary.js";
+import progressModel from "../../DB/models/progress.model.js";
 
 export const addBook = async (req, res, next) => {
   const {title, description, totalPages, category} = req.body;
@@ -81,7 +81,7 @@ export const editBook = async (req, res, next) => {
   });
 
   if (!oldBook) {
-    throw new Error("Book Is Not Exist Or You Are Not Authorized ❗", {
+    throw new Error("Book Is Not Exist ❗", {
       cause: 404,
     });
   }
@@ -156,13 +156,14 @@ export const editBook = async (req, res, next) => {
 
 export const getBook = async (req, res, next) => {
   const {id} = req.params;
+  let progressInfo = {};
 
   const book = await db_service.findOne({
     model: bookModel,
-    filter: {_id: id, createdBy: req.user._id},
+    filter: {_id: id},
   });
   if (!book) {
-    throw new Error("Book Not Exist Or You Are Not Authorized", {cause: 400});
+    throw new Error("Book Not Exist ❗", {cause: 400});
   }
 
   const favorite = await db_service.findOne({
@@ -173,10 +174,36 @@ export const getBook = async (req, res, next) => {
     },
   });
 
+  const progress = await db_service.findOne({
+    model: progressModel,
+    filter: {bookId: id, userId: req.user._id},
+    options: {
+      populate: [
+        {
+          path: "bookId",
+          select: "totalPages",
+        },
+      ],
+    },
+  });
+
+  if (progress) {
+    const percentage = (
+      (progress?.currentPage / progress?.bookId.totalPages) *
+      100
+    ).toFixed(2);
+
+    progressInfo = {
+      percentage,
+      currentPage: progress.currentPage,
+      status: progress.status,
+    };
+  }
+
   successResponse({
     res,
     status: 200,
     message: "Book Fetched Successfully 🥳🥳",
-    data: {book, isFavorite: !!favorite},
+    data: {book, progressInfo, isFavorite: !!favorite},
   });
 };

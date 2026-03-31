@@ -45,6 +45,7 @@ const bookSchema = new mongoose.Schema(
     strictQuery: true,
   },
 );
+bookSchema.index({createdBy: 1});
 
 const bookModel = mongoose.models.book || mongoose.model("book", bookSchema);
 

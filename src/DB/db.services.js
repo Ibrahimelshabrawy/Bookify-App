@@ -103,3 +103,7 @@ export const findOneAndDelete = async ({
 } = {}) => {
   return await model.findOneAndDelete(filter, options);
 };
+
+export const countDocuments = async ({model, filter}) => {
+  return await model.countDocuments(filter);
+};

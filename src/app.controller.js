@@ -5,6 +5,8 @@ import {redisConnection} from "./DB/redis/redis.db.js";
 import authRouter from "./modules/Auth/auth.controller.js";
 import bookRouter from "./modules/books/book.controller.js";
 import favoriteRouter from "./modules/favorites/favorites.controller.js";
+import userRouter from "./modules/users/user.controller.js";
+import progressRouter from "./modules/progress/progress.controller.js";
 const app = express();
 const port = process.env.PORT;
 
@@ -24,11 +26,13 @@ const bootstrap = async () => {
 
   // Routers
   app.use("/auth", authRouter);
+  app.use("/users", userRouter);
   app.use("/books", bookRouter);
   app.use("/favorites", favoriteRouter);
+  app.use("/progress", progressRouter);
 
   app.use("{/*demo}", (req, res, next) => {
-    throw new Error("`The URL ${req.originalUrl} Is Not Found 😥`", {
+    throw new Error(`The URL ${req.originalUrl} Is Not Found 😥`, {
       cause: 500,
     });
   });

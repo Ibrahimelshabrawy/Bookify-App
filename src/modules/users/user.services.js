@@ -1,72 +1,71 @@
-// import {findOne} from "../../DB/db.services.js";
-
+import * as db_service from "../../DB/db.services.js";
+import bookModel from "../../DB/models/book.model.js";
+import favoriteModel from "../../DB/models/favorites.model.js";
+import userModel from "../../DB/models/user.model.js";
+import {successResponse} from "../../common/utils/response/success.response.js";
 // // -------------------------------------------------------------------------------------------------------------------------------
 
-// // export const updateProfile = async (req, res, next) => {
-// //   let {firstName, lastName, gender, phone} = req.body;
-// //   const {id} = req.params;
-// //   if (phone) {
-// //     phone = await encrypt(phone);
-// //   }
-// //   const user = await db_service.findOneAndUpdate({
-// //     model: userModel,
-// //     filter: {_id: id},
-// //     update: {firstName, lastName, gender, phone},
-// //     select: "-password",
-// //   });
-// //   if (!user) {
-// //     throw new Error("User Not Exist", {cause: 404});
-// //   }
+export const getProfile = async (req, res, next) => {
+  const {password, ...user} = req.user._doc;
 
-// //   await redis_service.deleteKey(`profile::${req.user._id}`);
+  const [bookCount, favoriteCount] = await Promise.all([
+    db_service.countDocuments({
+      model: bookModel,
+      filter: {createdBy: req.user._id},
+    }),
+    db_service.countDocuments({
+      model: favoriteModel,
+      filter: {userId: req.user._id},
+    }),
+  ]);
 
-// //   successResponse({
-// //     res,
-// //     status: 200,
-// //     message: "User Updated Successfully",
-// //     data: user,
-// //   });
-// // };
-// // -------------------------------------------------------------------------------------------------------------------------------
-// // export const getProfile = async (req, res, next) => {
-// //   req.user.phone = await decrypt(req.user.phone);
-// //   const userExist = await redis_service.get(
-// //     redis_service.getUserProfile({userId: req.user._id}),
-// //   );
-// //   if (userExist) {
-// //     return successResponse({
-// //       res,
-// //       status: 200,
-// //       message: "User Profile",
-// //       data: req.user,
-// //     });
-// //   }
-// //   await redis_service.set({
-// //     key,
-// //     value: req.user,
-// //     ttl: 60 * 3,
-// //   });
+  successResponse({
+    res,
+    status: 200,
+    message: "User Profile",
+    data: {user, favoriteCount, bookCount},
+  });
+};
 
-// //   successResponse({
-// //     res,
-// //     status: 200,
-// //     message: "User Profile",
-// //     data: req.user,
-// //   });
-// // };
-// // -------------------------------------------------------------------------------------------------------------------------------
+export const updateProfile = async (req, res, next) => {
+  let {firstName, lastName, bio} = req.body;
 
-// // export const deleteByUser = async (req, res, next) => {
-// //   await db_service.deleteOne({
-// //     model: userModel,
-// //     filter: {_id: req.user._id},
-// //   });
-// //   deleteFile(req.user.profilePicture);
-// //   deleteFiles(req.user.coverPictures);
+  const user = await db_service.findOneAndUpdate({
+    model: userModel,
+    filter: {_id: req.user._id},
+    update: {firstName, lastName, bio},
+    select: "-password",
+  });
+  if (!user) {
+    throw new Error("User Not Exist", {cause: 404});
+  }
 
-// //   successResponse({
-// //     res,
-// //     status: 200,
-// //     message: "User Deleted Successfully🥳🥳",
-// //   });
-// // };
+  successResponse({
+    res,
+    status: 200,
+    message: "User Updated Successfully",
+    data: user,
+  });
+};
+
+export const deleteProfile = async (req, res, next) => {
+  await db_service.deleteMany({
+    model: bookModel,
+    filter: {createdBy: req.user._id},
+  });
+  await db_service.deleteMany({
+    model: favoriteModel,
+    filter: {userId: req.user._id},
+  });
+
+  await db_service.deleteOne({
+    model: userModel,
+    filter: {_id: req.user._id},
+  });
+
+  successResponse({
+    res,
+    status: 200,
+    message: "User Deleted Successfully🥳🥳",
+  });
+};
