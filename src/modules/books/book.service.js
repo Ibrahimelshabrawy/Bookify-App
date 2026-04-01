@@ -188,10 +188,9 @@ export const getBook = async (req, res, next) => {
   });
 
   if (progress) {
-    const percentage = (
-      (progress?.currentPage / progress?.bookId.totalPages) *
-      100
-    ).toFixed(2);
+    const percentage = Number(
+      ((progress?.currentPage / progress?.bookId.totalPages) * 100).toFixed(2),
+    );
 
     progressInfo = {
       percentage,

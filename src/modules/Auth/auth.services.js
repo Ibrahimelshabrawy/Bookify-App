@@ -36,7 +36,7 @@ export const signUp = async (req, res, next) => {
   successResponse({
     res,
     message: "Sign Up Successfully Enjoy 🥳",
-    status: 200,
+    status: 201,
     data: {user},
   });
 };

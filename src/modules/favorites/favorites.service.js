@@ -12,7 +12,7 @@ export const addToFavorite = async (req, res, next) => {
     id: bookId,
   });
   if (!book) {
-    throw new Error("Book Not Exist Or You Are Not Authorized", {cause: 400});
+    throw new Error("Book Not Exist ❗", {cause: 400});
   }
 
   const favorite = await db_service.create({
@@ -33,15 +33,13 @@ export const addToFavorite = async (req, res, next) => {
 export const removeFromFavorites = async (req, res, next) => {
   const {bookId} = req.params;
 
-  console.log(bookId);
-
   const book = await db_service.findById({
     model: bookModel,
     id: bookId,
   });
 
   if (!book) {
-    throw new Error("Book Not Exist Or You Are Not Authorized", {cause: 400});
+    throw new Error("Book Not Exist ❗", {cause: 404});
   }
 
   const favorite = await db_service.findOneAndDelete({

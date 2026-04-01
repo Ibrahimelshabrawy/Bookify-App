@@ -9,17 +9,22 @@ export const authentication = async (req, res, next) => {
   const {authorization} = req.headers;
 
   if (!authorization) {
-    throw new Error("token is required");
+    throw new Error("Token is required", {cause: 401});
   }
 
   const [prefix, token] = authorization.split(" ");
+
   if (prefix !== "bearer") {
-    throw new Error("Invalid prefix");
+    throw new Error("Invalid authorization prefix", {cause: 401});
   }
 
-  const verify = VerifyToken({token, secret_key: ACCESS_SECRET_KEY});
+  const verify = VerifyToken({
+    token,
+    secret_key: ACCESS_SECRET_KEY,
+  });
+
   if (!verify || !verify?.id) {
-    throw new Error("Invalid Token");
+    throw new Error("Invalid token", {cause: 401});
   }
 
   const user = await db_service.findOne({
@@ -28,25 +33,22 @@ export const authentication = async (req, res, next) => {
   });
 
   if (!user) {
-    throw new Error("User Not Found", {cause: 404});
+    throw new Error("Invalid token user not found", {cause: 401});
   }
 
-  // This for logout from all devices
   if (user?.changeCredential?.getTime() > verify.iat * 1000) {
-    throw new Error("Invalid Token session", {cause: 403});
+    throw new Error("Invalid token session", {cause: 403});
   }
 
-  // This for logout from only one device
-
-  // Search In Cache
   const revokeToken = await redis_service.get(
     redis_service.revokeKey({
       userId: user._id,
       jti: verify.jti,
     }),
   );
+
   if (revokeToken) {
-    throw new Error("Invalid Revoke Token For This Device", {cause: 403});
+    throw new Error("Token revoked for this device", {cause: 403});
   }
 
   req.user = user;

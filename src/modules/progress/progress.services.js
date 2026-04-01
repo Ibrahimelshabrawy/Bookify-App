@@ -53,8 +53,8 @@ export const updateProgress = async (req, res, next) => {
   }
   await progress.save();
 
-  const percentage = ((currentPage / progress.bookId.totalPages) * 100).toFixed(
-    2,
+  const percentage = Number(
+    ((currentPage / progress.bookId.totalPages) * 100).toFixed(2),
   );
 
   successResponse({
@@ -80,14 +80,11 @@ export const getProgress = async (req, res, next) => {
     },
   });
 
-  console.log(progressList);
-
   const progresses = progressList.map((progress) => ({
     progress,
-    percentage: (
-      (progress.currentPage / progress.bookId.totalPages) *
-      100
-    ).toFixed(2),
+    percentage: Number(
+      ((progress.currentPage / progress.bookId.totalPages) * 100).toFixed(2),
+    ),
   }));
 
   successResponse({
