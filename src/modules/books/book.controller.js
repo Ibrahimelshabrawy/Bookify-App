@@ -25,10 +25,6 @@ bookRouter.post(
 bookRouter.patch(
   "/edit-book/:id",
   authentication,
-  multer_host([...MulterEnum.image, ...MulterEnum.pdf]).fields([
-    {name: "image", maxCount: 1},
-    {name: "pdf", maxCount: 1},
-  ]),
   validation(BV.editBookSchema),
   BS.editBook,
 );
@@ -36,8 +32,20 @@ bookRouter.patch(
 bookRouter.get(
   "/:id",
   authentication,
-  validation(BV.getBookSchema),
+  validation(BV.checkBookIdSchema),
   BS.getBook,
 );
+bookRouter.delete(
+  "/:id",
+  authentication,
+  validation(BV.checkBookIdSchema),
+  BS.deleteBook,
+);
 
+bookRouter.get(
+  "/",
+  authentication,
+  validation(BV.checkCategorySchema),
+  BS.getBookByCategory,
+);
 export default bookRouter;

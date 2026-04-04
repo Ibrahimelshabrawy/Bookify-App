@@ -7,6 +7,8 @@ import bookRouter from "./modules/books/book.controller.js";
 import favoriteRouter from "./modules/favorites/favorites.controller.js";
 import userRouter from "./modules/users/user.controller.js";
 import progressRouter from "./modules/progress/progress.controller.js";
+import homeRouter from "./modules/home/home.controller.js";
+import noteRouter from "./modules/Notes/note.controller.js";
 const app = express();
 const port = process.env.PORT;
 
@@ -30,6 +32,8 @@ const bootstrap = async () => {
   app.use("/books", bookRouter);
   app.use("/favorites", favoriteRouter);
   app.use("/progress", progressRouter);
+  app.use("/home", homeRouter);
+  app.use("/note", noteRouter);
 
   app.use("{/*demo}", (req, res, next) => {
     throw new Error(`The URL ${req.originalUrl} Is Not Found 😥`, {

@@ -22,6 +22,20 @@ export const GeneralRules = {
     "any.required": "Please Enter The Title",
   }),
   description: joi.string().min(1),
+  content: joi.string().min(1).messages({
+    "any.required": "Please Enter The Content",
+  }),
+  page: joi
+    .when("bookId", {
+      is: joi.exist(),
+      then: joi.number().min(1).required(),
+      otherwise: joi.forbidden,
+    })
+    .messages({
+      "any.required": "Please Enter Page Number",
+      "any.custom": "Cannot Add Page Field Without Enter BookId",
+    }),
+
   totalPages: joi.number().min(1).messages({
     "any.required": "Please Enter The Total Pages",
     "number.min": "Total Pages must be greater than or equal to 1",

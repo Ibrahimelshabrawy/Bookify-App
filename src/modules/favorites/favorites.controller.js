@@ -19,6 +19,4 @@ favoriteRouter.delete(
   validation(FV.checkBookIdSchema),
   FS.removeFromFavorites,
 );
-
-favoriteRouter.get("/", authentication, FS.getFavorites);
 export default favoriteRouter;

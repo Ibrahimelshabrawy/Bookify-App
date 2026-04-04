@@ -5,7 +5,7 @@ const checkConnection = async () => {
     await mongoose.connect(DB_URI_ONLINE, {
       serverSelectionTimeoutMS: 30000,
     });
-    console.log(`Connection to DB ${DB_URI_ONLINE} Successfully `);
+    console.log(`Connection to DB Successfully `);
   } catch (error) {
     console.log("Connection to DB failed", error);
   }

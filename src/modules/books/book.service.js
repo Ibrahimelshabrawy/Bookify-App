@@ -6,6 +6,7 @@ import {successResponse} from "../../common/utils/response/success.response.js";
 import favoriteModel from "../../DB/models/favorites.model.js";
 import cloudinary from "../../common/utils/cloudinary/cloudinary.js";
 import progressModel from "../../DB/models/progress.model.js";
+import notesModel from "../../DB/models/note.model.js";
 
 export const addBook = async (req, res, next) => {
   const {title, description, totalPages, category} = req.body;
@@ -75,9 +76,12 @@ export const editBook = async (req, res, next) => {
   const {title, category, description, totalPages} = req.body;
   const {id} = req.params;
 
-  const oldBook = await db_service.findById({
+  const oldBook = await db_service.findOne({
     model: bookModel,
-    id,
+    filter: {
+      _id: id,
+      createdBy: req.user._id,
+    },
   });
 
   if (!oldBook) {
@@ -86,51 +90,22 @@ export const editBook = async (req, res, next) => {
     });
   }
 
-  const updatedData = {};
-  let pagesCount = totalPages;
-
-  if (req.files?.image) {
-    if (oldBook?.image?.public_id) {
-      await cloudinary.uploader.destroy(oldBook.image.public_id, {
-        resource_type: "image",
-      });
-    }
-    const imageUpload = await cloudinary.uploader.upload(
-      req.files.image[0].path,
-      {
-        folder: "images",
-        resource_type: "image",
-      },
-    );
-
-    updatedData.image = {
-      secure_url: imageUpload.secure_url,
-      public_id: imageUpload.public_id,
-    };
+  if (req.files?.pdf || req.files?.image) {
+    throw new Error("PDF or Image cannot be updated after book creation ❗", {
+      cause: 400,
+    });
   }
 
-  if (req.files?.pdf) {
-    if (oldBook?.pdf?.public_id) {
-      await cloudinary.uploader.destroy(oldBook.pdf.public_id, {
-        resource_type: "image",
-      });
+  const updatedData = {};
+  if (totalPages) {
+    if (oldBook?.pdf?.secure_url || oldBook?.image?.secure_url) {
+      throw new Error(
+        "Cannot update totalPages when book has PDF or Image ❗",
+        {cause: 400},
+      );
     }
-    const dataBuffer = fs.readFileSync(req.files.pdf[0].path);
-    const pdfDoc = await PDFDocument.load(dataBuffer);
-    pagesCount = pdfDoc.getPageCount();
 
-    const pdfUpload = await cloudinary.uploader.upload(req.files.pdf[0].path, {
-      folder: "Pdfs",
-      resource_type: "auto",
-    });
-
-    updatedData.pdf = {
-      secure_url: pdfUpload.secure_url,
-      public_id: pdfUpload.public_id,
-    };
-    updatedData.totalPages = pagesCount;
-  } else if (totalPages) {
-    updatedData.totalPages = pagesCount;
+    updatedData.totalPages = totalPages;
   }
 
   if (title) updatedData.title = title;
@@ -163,11 +138,18 @@ export const getBook = async (req, res, next) => {
     filter: {_id: id},
   });
   if (!book) {
-    throw new Error("Book Not Exist ❗", {cause: 400});
+    throw new Error("Book Not Exist ❗", {cause: 404});
   }
 
   const favorite = await db_service.findOne({
     model: favoriteModel,
+    filter: {
+      bookId: id,
+      userId: req.user._id,
+    },
+  });
+  const notes = await db_service.find({
+    model: notesModel,
     filter: {
       bookId: id,
       userId: req.user._id,
@@ -188,8 +170,9 @@ export const getBook = async (req, res, next) => {
   });
 
   if (progress) {
-    const percentage = Number(
-      ((progress?.currentPage / progress?.bookId.totalPages) * 100).toFixed(2),
+    const percentage = Math.min(
+      100,
+      Math.round((progress?.currentPage / progress?.bookId.totalPages) * 100),
     );
 
     progressInfo = {
@@ -203,6 +186,84 @@ export const getBook = async (req, res, next) => {
     res,
     status: 200,
     message: "Book Fetched Successfully 🥳🥳",
-    data: {book, progressInfo, isFavorite: !!favorite},
+    data: {book, notes, progressInfo, isFavorite: !!favorite},
+  });
+};
+
+export const deleteBook = async (req, res, next) => {
+  const {id} = req.params;
+
+  const book = await db_service.findOne({
+    model: bookModel,
+    filter: {
+      _id: id,
+      createdBy: req.user._id,
+    },
+  });
+
+  if (!book) {
+    throw new Error("Book Not Exist❗", {
+      cause: 404,
+    });
+  }
+
+  if (book?.image?.public_id) {
+    await cloudinary.uploader.destroy(book.image.public_id, {
+      resource_type: "image",
+    });
+  }
+
+  if (book?.pdf?.public_id) {
+    await cloudinary.uploader.destroy(book.pdf.public_id, {
+      resource_type: "image",
+    });
+  }
+
+  await db_service.deleteMany({
+    model: progressModel,
+    filter: {bookId: id},
+  });
+
+  await db_service.deleteMany({
+    model: favoriteModel,
+    filter: {bookId: id},
+  });
+  await db_service.deleteMany({
+    model: notesModel,
+    filter: {bookId: id},
+  });
+
+  await db_service.findOneAndDelete({
+    model: bookModel,
+    filter: {_id: id},
+  });
+
+  successResponse({
+    res,
+    status: 200,
+    message: "Book Deleted Successfully 🗑️",
+  });
+};
+
+export const getBookByCategory = async (req, res, next) => {
+  const {category} = req.query;
+
+  const books = await db_service.find({
+    model: bookModel,
+    filter: {category},
+    options: {
+      lean: true,
+    },
+  });
+
+  if (books.length === 0) {
+    throw new Error(`Books With Category:${category} Not Found`, {cause: 404});
+  }
+
+  successResponse({
+    res,
+    status: 200,
+    message: `${category} Books Fetched Successfully 🥳🥳`,
+    data: books,
   });
 };

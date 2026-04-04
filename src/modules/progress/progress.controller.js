@@ -19,5 +19,4 @@ progressRouter.patch(
   PS.updateProgress,
 );
 
-progressRouter.get("/", authentication, PS.getProgress);
 export default progressRouter;

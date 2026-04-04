@@ -54,7 +54,7 @@ export const updateProgress = async (req, res, next) => {
   await progress.save();
 
   const percentage = Number(
-    ((currentPage / progress.bookId.totalPages) * 100).toFixed(2),
+    Math.min(100, Math.round((currentPage / progress.bookId.totalPages) * 100)),
   );
 
   successResponse({
@@ -62,35 +62,5 @@ export const updateProgress = async (req, res, next) => {
     status: 200,
     message: "Progress Updated Successfully 🥳🥳",
     data: {progress, percentage},
-  });
-};
-
-export const getProgress = async (req, res, next) => {
-  const progressList = await db_service.find({
-    model: progressModel,
-    filter: {userId: req.user._id},
-    options: {
-      populate: [
-        {
-          path: "bookId",
-          select:
-            "_id title description totalPages category image pdf createdAt",
-        },
-      ],
-    },
-  });
-
-  const progresses = progressList.map((progress) => ({
-    progress,
-    percentage: Number(
-      ((progress.currentPage / progress.bookId.totalPages) * 100).toFixed(2),
-    ),
-  }));
-
-  successResponse({
-    res,
-    status: 200,
-    message: "Progress Fetched Successfully 🥳🥳",
-    data: progresses,
   });
 };

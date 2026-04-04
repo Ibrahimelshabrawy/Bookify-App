@@ -20,17 +20,21 @@ export const addBookSchema = {
 export const editBookSchema = {
   body: joi
     .object({
-      title: GeneralRules.title.required(),
+      title: GeneralRules.title,
       description: GeneralRules.description,
-      totalPages: GeneralRules.totalPages.required(),
+      totalPages: GeneralRules.totalPages,
       category: GeneralRules.category,
-      image: GeneralRules.file,
-      pdf: GeneralRules.file,
     })
     .min(1),
   params: GeneralRules.id.required(),
 };
 
-export const getBookSchema = {
+export const checkBookIdSchema = {
   params: GeneralRules.id.required(),
+};
+
+export const checkCategorySchema = {
+  query: joi.object({
+    category: GeneralRules.category,
+  }),
 };

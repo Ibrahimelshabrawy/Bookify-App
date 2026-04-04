@@ -56,28 +56,3 @@ export const removeFromFavorites = async (req, res, next) => {
     message: "Book Removed Successfully From Favorites 🗑️",
   });
 };
-
-export const getFavorites = async (req, res, next) => {
-  const findFavorites = await db_service.find({
-    model: favoriteModel,
-    filter: {
-      userId: req.user._id,
-    },
-    options: {
-      populate: [
-        {
-          path: "bookId",
-          select:
-            "_id title description totalPages category image pdf createdAt",
-        },
-      ],
-    },
-  });
-  const favorite = findFavorites.map((fav) => fav.bookId);
-
-  successResponse({
-    res,
-    message: "Favorites Retrieved Successfully 📚",
-    data: {favorite},
-  });
-};
