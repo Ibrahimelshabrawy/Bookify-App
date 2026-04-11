@@ -35,10 +35,6 @@ export const addNote = async (req, res, next) => {
 };
 
 export const getNotes = async (req, res, next) => {
-  if (!book) {
-    throw new Error("Book Not Exist AnyMore ❗", {cause: 404});
-  }
-
   const notes = await db_service.find({
     model: notesModel,
     filter: {
@@ -51,7 +47,7 @@ export const getNotes = async (req, res, next) => {
     },
   });
 
-  if (!notes) {
+  if (!notes.length) {
     throw new Error("Notes Not Found ❗", {cause: 404});
   }
 
@@ -134,7 +130,7 @@ export const updateNote = async (req, res, next) => {
 export const deleteNote = async (req, res, next) => {
   const {id} = req.params;
 
-  const note = db_service.findOneAndDelete({
+  const note = await db_service.findOneAndDelete({
     model: notesModel,
     filter: {_id: id},
   });

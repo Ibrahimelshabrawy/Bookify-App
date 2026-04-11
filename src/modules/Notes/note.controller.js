@@ -14,7 +14,12 @@ noteRouter.post(
 );
 
 noteRouter.get("/", authentication, NS.getNotes);
-noteRouter.get("/:bookId", authentication, NS.getBookNotes);
+noteRouter.get(
+  "/book/:bookId",
+  authentication,
+  validation(NV.getBookNotesSchema),
+  NS.getBookNotes,
+);
 noteRouter.patch("/update-note/:id", authentication, NS.updateNote);
 noteRouter.delete("/delete-note/:id", authentication, NS.deleteNote);
 

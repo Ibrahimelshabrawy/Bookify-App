@@ -18,7 +18,7 @@ export const addBook = async (req, res, next) => {
     const imageUpload = await cloudinary.uploader.upload(
       req.files.image[0].path,
       {
-        folder: "images",
+        folder: "Bookify/Images",
         resource_type: "image",
       },
     );
@@ -33,7 +33,7 @@ export const addBook = async (req, res, next) => {
     pagesCount = pdfDoc.getPageCount();
 
     const pdfUpload = await cloudinary.uploader.upload(req.files.pdf[0].path, {
-      folder: "Pdfs",
+      folder: "Bookify/Pdfs",
       resource_type: "auto",
     });
     pdfData = {
@@ -98,11 +98,10 @@ export const editBook = async (req, res, next) => {
 
   const updatedData = {};
   if (totalPages) {
-    if (oldBook?.pdf?.secure_url || oldBook?.image?.secure_url) {
-      throw new Error(
-        "Cannot update totalPages when book has PDF or Image ❗",
-        {cause: 400},
-      );
+    if (oldBook?.pdf?.secure_url) {
+      throw new Error("Cannot update totalPages when book has PDF❗", {
+        cause: 400,
+      });
     }
 
     updatedData.totalPages = totalPages;
