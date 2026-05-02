@@ -244,25 +244,40 @@ export const deleteBook = async (req, res, next) => {
   });
 };
 
-export const getBookByCategory = async (req, res, next) => {
-  const {category} = req.query;
+export const getBooks = async (req, res, next) => {
+  const {page = 1, limit = 10, category} = req.query;
+
+  page = Number(page);
+  limit = Number(limit);
+  const skip = (page - 1) * limit;
+
+  const filter = {
+    createdBy: req.user._id,
+  };
+
+  if (category) {
+    filter.category = category;
+  }
 
   const books = await db_service.find({
     model: bookModel,
-    filter: {category},
+    filter,
     options: {
       lean: true,
+      sort: {createdAt: -1},
+      limit,
+      skip,
     },
   });
 
   if (books.length === 0) {
-    throw new Error(`Books With Category:${category} Not Found`, {cause: 404});
+    throw new Error(`Books Not Found`, {cause: 404});
   }
 
   successResponse({
     res,
     status: 200,
-    message: `${category} Books Fetched Successfully 🥳🥳`,
+    message: `Books Fetched Successfully 🥳🥳`,
     data: books,
   });
 };

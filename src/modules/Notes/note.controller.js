@@ -7,20 +7,23 @@ import * as NV from "./note.validation.js";
 const noteRouter = Router();
 
 noteRouter.post(
-  "/add-note",
+  "/add-note/:bookId",
   authentication,
   validation(NV.addNoteSchema),
   NS.addNote,
 );
 
-noteRouter.get("/", authentication, NS.getNotes);
-noteRouter.get(
-  "/book/:bookId",
+noteRouter.patch(
+  "/update-note/:id",
   authentication,
-  validation(NV.getBookNotesSchema),
-  NS.getBookNotes,
+  validation(NV.updateNoteSchema),
+  NS.updateNote,
 );
-noteRouter.patch("/update-note/:id", authentication, NS.updateNote);
-noteRouter.delete("/delete-note/:id", authentication, NS.deleteNote);
+noteRouter.delete(
+  "/delete-note/:id",
+  authentication,
+  validation(NV.deleteNoteSchema),
+  NS.deleteNote,
+);
 
 export default noteRouter;

@@ -46,6 +46,6 @@ bookRouter.get(
   "/",
   authentication,
   validation(BV.checkCategorySchema),
-  BS.getBookByCategory,
+  BS.getBooks,
 );
 export default bookRouter;

@@ -4,24 +4,30 @@ import {GeneralRules} from "../../common/utils/helpers/generalRules.validation.j
 export const addNoteSchema = {
   body: joi
     .object({
-      title: GeneralRules.title.required(),
       content: GeneralRules.content.required(),
-      page: GeneralRules.page,
-      bookId: GeneralRules.id,
     })
     .required()
     .messages({
       "any.required": "Please Fill The Required Fields",
     }),
+  params: joi.object({
+    bookId: GeneralRules.id.required(),
+  }),
 };
 
-export const getBookNotesSchema = {
-  params: joi
+export const updateNoteSchema = {
+  body: joi
     .object({
-      bookId: GeneralRules.id.required(),
+      content: GeneralRules.content,
     })
     .required()
     .messages({
       "any.required": "Please Fill The Required Fields",
-    }),
+    })
+    .min(1),
+  params: GeneralRules.id.required(),
+};
+
+export const deleteNoteSchema = {
+  params: GeneralRules.id.required(),
 };

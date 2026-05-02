@@ -3,10 +3,10 @@ import {Types} from "mongoose";
 import {BookEnum} from "../enum/book.enum.js";
 
 export const GeneralRules = {
-  firstName: joi.string().min(3).max(20).messages({
+  firstName: joi.string().min(3).max(25).messages({
     "any.required": "Please Enter The First Name",
   }),
-  lastName: joi.string().min(3).max(20).messages({
+  lastName: joi.string().min(3).max(25).messages({
     "any.required": "Please Enter The Last Name",
   }),
   bio: joi.string().min(3).max(150),
@@ -25,17 +25,6 @@ export const GeneralRules = {
   content: joi.string().min(1).messages({
     "any.required": "Please Enter The Content",
   }),
-  page: joi
-    .when("bookId", {
-      is: joi.exist(),
-      then: joi.number().min(1).required(),
-      otherwise: joi.forbidden,
-    })
-    .messages({
-      "any.required": "Please Enter Page Number",
-      "any.custom": "Cannot Add Page Field Without Enter BookId",
-    }),
-
   totalPages: joi.number().min(1).messages({
     "any.required": "Please Enter The Total Pages",
     "number.min": "Total Pages must be greater than or equal to 1",

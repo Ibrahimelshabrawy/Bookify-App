@@ -1,6 +1,7 @@
 import * as db_service from "../../DB/db.services.js";
 import bookModel from "../../DB/models/book.model.js";
 import favoriteModel from "../../DB/models/favorites.model.js";
+import notesModel from "../../DB/models/note.model.js";
 import userModel from "../../DB/models/user.model.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
 // // -------------------------------------------------------------------------------------------------------------------------------
@@ -49,20 +50,26 @@ export const updateProfile = async (req, res, next) => {
 };
 
 export const deleteProfile = async (req, res, next) => {
-  await db_service.deleteMany({
-    model: bookModel,
-    filter: {createdBy: req.user._id},
-  });
-  await db_service.deleteMany({
-    model: favoriteModel,
-    filter: {userId: req.user._id},
-  });
+  Promise.all([
+    await db_service.deleteMany({
+      model: bookModel,
+      filter: {createdBy: req.user._id},
+    }),
+    await db_service.deleteMany({
+      model: favoriteModel,
+      filter: {userId: req.user._id},
+    }),
 
-  await db_service.deleteOne({
-    model: userModel,
-    filter: {_id: req.user._id},
-  });
+    await db_service.deleteOne({
+      model: userModel,
+      filter: {_id: req.user._id},
+    }),
 
+    await db_service.deleteMany({
+      model: notesModel,
+      filter: {_id: req.user._id},
+    }),
+  ]);
   successResponse({
     res,
     status: 200,
