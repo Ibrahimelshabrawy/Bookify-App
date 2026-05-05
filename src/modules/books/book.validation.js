@@ -36,5 +36,7 @@ export const checkBookIdSchema = {
 export const checkCategorySchema = {
   query: joi.object({
     category: GeneralRules.category,
+    page: joi.string().min(1),
+    limit: joi.string().min(1),
   }),
 };
