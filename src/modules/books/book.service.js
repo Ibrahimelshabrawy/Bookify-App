@@ -245,7 +245,7 @@ export const deleteBook = async (req, res, next) => {
 };
 
 export const getBooks = async (req, res, next) => {
-  const {page = 1, limit = 10, category} = req.query;
+  let {page = 1, limit = 10, category} = req.query;
 
   page = Number(page);
   limit = Number(limit);
