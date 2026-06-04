@@ -16,6 +16,13 @@ Bookify is a production-ready backend API for a book management application. It 
 Built with Node.js, Express, MongoDB, Redis, and Cloudinary, this backend is designed to support a modern book-reading experience with fast caching and media handling.
 
 ---
+## 🎥 Demo Video
+
+Watch the full Bookify App demo here:
+
+[▶️ Watch Bookify App Demo](https://drive.google.com/file/d/12QFJf1gEoTCZ4ei2AySdwaZDR0E3PLj2/view?usp=sharing)
+
+---
 
 ## 🔧 Key Features
 
